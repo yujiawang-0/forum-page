@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/CVWO/sample-go-app/internal/api"
-	users "github.com/CVWO/sample-go-app/internal/dataaccess"
-	"github.com/CVWO/sample-go-app/internal/database"
+	"github.com/yujiawang-0/forum-page/internal/api"
+	users "github.com/yujiawang-0/forum-page/internal/dataaccess"
+	"github.com/yujiawang-0/forum-page/internal/database"
 	"github.com/pkg/errors"
 )
+
+// handlers: HTTP layer (parse JSON, validate, return JSON)
+// receives a call from routes and talks to services/dataaccess
+
 
 const (
 	ListUsers = "users.HandleList"
