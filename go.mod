@@ -3,7 +3,6 @@ module github.com/yujiawang-0/forum-page
 go 1.24.0
 
 require (
-	github.com/CVWO/sample-go-app v0.0.0-20231204073348-61edbafb424c
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/joho/godotenv v1.5.1

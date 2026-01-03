@@ -11,12 +11,16 @@ import (
 	"github.com/pkg/errors"
 )
 
-// handlers: HTTP layer (parse JSON, validate, return JSON)
+// handlers: HTTP layer (parse JSON, URL, validate, return JSON)
+// Should not contain SQL, pgx and do routing
 // receives a call from routes and talks to services/dataaccess
+// basically controllers in MVC
+// what does the client need to do (to the database)?
+
 
 
 const (
-	ListUsers = "users.HandleList"
+	ListUsers = "users.GetAllUsers"
 
 	SuccessfulListUsersMessage = "Successfully listed users"
 	ErrRetrieveDatabase        = "Failed to retrieve database in %s"
@@ -24,14 +28,15 @@ const (
 	ErrEncodeView              = "Failed to retrieve users in %s"
 )
 
-func HandleList(w http.ResponseWriter, r *http.Request) (*api.Response, error) {
+// GET/users
+func GetAllUsers(w http.ResponseWriter, r *http.Request) (*api.Response, error) {
 	db, err := database.GetDB()
 
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf(ErrRetrieveDatabase, ListUsers))
 	}
 
-	users, err := users.List(db)
+	users, err := users.GetAllUsers(db)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf(ErrRetrieveUsers, ListUsers))
 	}

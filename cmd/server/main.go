@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
+	//"os"
 
 	"github.com/yujiawang-0/forum-page/internal/database"
 	"github.com/yujiawang-0/forum-page/internal/router"
+	"github.com/yujiawang-0/forum-page/internal/dataaccess"
+	"github.com/yujiawang-0/forum-page/internal/models"
 )
 
 func main() {
@@ -17,25 +19,44 @@ func main() {
 		log.Fatalf("Unable to get DB: %v", err)
 	}
 
-	defer db.Conn.Close(context.Background())
- 
-	// Create table if it doesn't exist
-    createTableSQL := `
-        CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            username TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
-            created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-        );
-    `
-    _, err = db.Conn.Exec(context.Background(), createTableSQL)
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "Failed to create table: %v\n", err)
-        os.Exit(1)
-    } else {
-		fmt.Println("users table created successfully")
+	defer db.Conn.Close(context.Background()) // postpone this until main() function is over
+	
+	// create the tables in the database
+	err = database.CreateUserTables(db);
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = database.CreateTopicTables(db);
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = database.CreatePostTables(db);
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = database.CreateCommentTables(db);
+	if err != nil {
+		log.Fatal(err)
 	}
 
+	// testing dataaccess
+	u, err := dataaccess.CreateUser(db, models.User{
+		Username: "Tom",
+		Password: "secret",
+		Role: "User",
+	})
+	log.Println(u, err)
+
+	users, _ := dataaccess.GetAllUsers(db)
+	for _, u := range users {
+		log.Println(*u)
+	}
+	// log.Println(users)
+
+	one, _ := dataaccess.GetUserByID(db, u.ID)
+	log.Println(one)
+
+	
 	r := router.Setup()
 	fmt.Print("Listening on port 8000 at http://localhost:8000!")
 
