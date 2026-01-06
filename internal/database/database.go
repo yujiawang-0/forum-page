@@ -58,7 +58,7 @@ func CreateUserTables(db *Database ) (error) {
             "user_id" SERIAL PRIMARY KEY NOT NULL,
             "username" varchar(255) UNIQUE NOT NULL,
 			"password" varchar(255) NOT NULL,
-			"role" varchar(255) NOT NULL DEFAULT 'User',
+			"role" varchar(255) NOT NULL DEFAULT 'user',
             "date_created" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
     `

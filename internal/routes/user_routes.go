@@ -1,20 +1,20 @@
 package routes
 
 import (
-	"encoding/json"
-	"net/http"
-
-	"github.com/yujiawang-0/forum-page/internal/handlers/users"
 	"github.com/go-chi/chi/v5"
+	"github.com/yujiawang-0/forum-page/internal/database"
+	"github.com/yujiawang-0/forum-page/internal/handlers/users"
 )
 
-func GetRoutes() func(r chi.Router) {
+func UserRoutes(db *database.Database) func(r chi.Router) {
 	return func(r chi.Router) {
-		r.Get("/users", func(w http.ResponseWriter, req *http.Request) {
-			response, _ := users.GetAllUsers(w, req)
-
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
-		})
+		handler := &users.UserHandler{
+			DB: db,
+		}
+		r.Get("/", handler.HandleGetAllUsers)
+		r.Get("/user/{id}", handler.HandleGetUserByID)
+		r.Post("/user", handler.HandleCreateUser)
+		r.Put("/user/{id}", handler.HandleUpdateUser)
+		r.Delete("/user/{id}", handler.HandleDeleteUser)
 	}
 }

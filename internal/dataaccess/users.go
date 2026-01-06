@@ -35,6 +35,7 @@ func GetAllUsers(db *database.Database) ([]*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var users []*models.User
 	for rows.Next() {
@@ -85,47 +86,47 @@ func GetUserByID(db *database.Database, id int) (*models.User, error) {
 func CreateUser(db *database.Database, user models.User) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
-	query := `INSERT INTO users (username, password, role, date_created) 
-	VALUES ($1, $2, $3, $4) returning * `
+	query := `INSERT INTO users (username, password)
+	VALUES ($1, $2) returning user_id, username, role, date_created`
 
 	var returnedUser models.User
 
+	// TODO: remember to hash password 
 	err := db.Conn.QueryRow(
 		ctx, 
 		query,
 		user.Username,
-		user.Password,
-		user.Role,
-		time.Now(), // date_created is now
+		user.Password, 
 	).Scan(
 		&returnedUser.ID,
 		&returnedUser.Username,
-		&returnedUser.Password, //TODO: remember to remove this and update SQL returning statement 
 		&returnedUser.Role,	
 		&returnedUser.DateCreated,
 	)
 	if err != nil {
-		return nil, err
+		return nil, UniqueUsernameViolation(err)
 	}
 
 	return &returnedUser, nil
 }
 
-func UpdateUser( db *database.Database, id int, body models.User) (*models.User, error) {
+func UpdateUser(db *database.Database, id int, body models.User) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
+	// coalesce: take the first non-null value out of all arguments
 	query := `
-        UPDATE coffees
+        UPDATE users
         SET
-            username = $1,
-            password = $2,
-            role = $3,
+            username = COALESCE($1, username), 
+            password = COALESCE($2, password),
+            role = COALESCE($3, role)
         WHERE user_id = $4
-        returning *
+        returning user_id, username, role, date_created
 		`
 	var returnedUser models.User
 
+	// TODO: remember to hash password
 	err := db.Conn.QueryRow(
 		ctx, 
 		query,
@@ -136,12 +137,11 @@ func UpdateUser( db *database.Database, id int, body models.User) (*models.User,
 	).Scan(
 		&returnedUser.ID,
 		&returnedUser.Username,
-		&returnedUser.Password, //TODO: remember to remove this and update SQL returning statement 
 		&returnedUser.Role,
 		&returnedUser.DateCreated,
 	)
 	if err != nil {
-		return nil, err
+		return nil, UniqueUsernameViolation(err)
 	}
 
 	return &returnedUser, nil
