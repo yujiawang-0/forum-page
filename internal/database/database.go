@@ -36,10 +36,10 @@ func GetDB() (*Database, error) {
 	
 	fmt.Println("Successfully connected to database")
 	
-	row := conn.QueryRow(context.Background(), "SELECT current_database(), current_schema()")
-var dbName, schema string
-row.Scan(&dbName, &schema)
-fmt.Println("Connected to DB:", dbName, "Schema:", schema)
+	// row := conn.QueryRow(context.Background(), "SELECT current_database(), current_schema()")
+	// var dbName, schema string
+	// row.Scan(&dbName, &schema)
+	// fmt.Println("Connected to DB:", dbName, "Schema:", schema)
 
 	return &Database{Conn: conn}, nil
 }
