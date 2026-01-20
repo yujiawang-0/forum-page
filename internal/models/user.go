@@ -12,11 +12,7 @@ type User struct {
 	Username 	string 		`json:"username"`
 	Password 	string		`json:"-"` // not sent to the client
 	Role 		string		`json:"role"`
+	IsActive 	bool 		`json:"is_active"`
 	DateCreated time.Time	`json:"date_created"`
 }
 
-/*
-func (user *User) Greet() string {
-	return fmt.Sprintf("Hello, I am %s", user.Username)
-}
-*/

@@ -59,7 +59,8 @@ func CreateUserTables(db *Database ) (error) {
             "username" varchar(255) UNIQUE NOT NULL,
 			"password" varchar(255) NOT NULL,
 			"role" varchar(255) NOT NULL DEFAULT 'user',
-            "date_created" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            "date_created" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+			"is_active" BOOLEAN NOT NULL DEFAULT TRUE
         );
     `
 
@@ -79,15 +80,15 @@ func CreateTopicTables(db *Database ) (error) {
 
 		CREATE TABLE IF NOT EXISTS topics (
             "topic_id" SERIAL PRIMARY KEY NOT NULL,
-            "topic_name" TEXT NOT NULL,
-			"admin_id" INT,
+            "topic_name" TEXT NOT NULL UNIQUE,
+			"admin_id" INT NOT NULL,
 			"creator_id" INT NOT NULL,
 			"date_created" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 
 			CONSTRAINT fk_admin FOREIGN KEY (admin_id) 
 			REFERENCES users(user_id),
 			CONSTRAINT fk_topic_creator FOREIGN KEY (creator_id) 
-			REFERENCES users(user_id) ON DELETE SET NULL  
+			REFERENCES users(user_id)  
         );
     `
 
@@ -106,18 +107,17 @@ func CreatePostTables(db *Database ) (error) {
     createPostTableSQL := `
 		CREATE TABLE IF NOT EXISTS posts (
             "post_id" SERIAL PRIMARY KEY NOT NULL,
-            "Title" TEXT NOT NULL,
+            "title" TEXT NOT NULL,
 			"content" TEXT NOT NULL,
 			"creator_id" INT NOT NULL,
 			"topic_id" INT NOT NULL,
             "date_created" TIMESTAMP WITH TIME ZONE DEFAULT NOW(), 
 			"date_updated" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 
-
 			CONSTRAINT fk_creator FOREIGN KEY (creator_id) 
-			REFERENCES users(user_id) ON DELETE CASCADE, 
+			REFERENCES users(user_id), 
 			CONSTRAINT fk_topic FOREIGN KEY (topic_id) 
-			REFERENCES topics(topic_id) ON DELETE CASCADE
+			REFERENCES topics(topic_id)
         );
     `
 

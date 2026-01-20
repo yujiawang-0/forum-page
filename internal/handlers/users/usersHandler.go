@@ -28,18 +28,6 @@ import (
 // https://github.com/arturfil/yt-go-coffee-api-v2/blob/main/controllers/coffee.go
 // https://github.com/dreamsofcode-io/golang-microservice-course-nn/blob/main/code/010-configuration-completion/handler/order.go
 
-// const (
-// 	GetAllUsers = "users.GetAllUsers"
-// 	GetUserByID = "users.GetUserByID"
-
-// 	SuccessfulListUsersMessage = "Successfully listed users"
-// 	ErrParseStrToInt = "unable to parse userid string to int"
-// 	// ErrRetrieveDatabase        = "Failed to retrieve database in %s"
-// 	ErrRetrieveUsers           = "Failed to retrieve users in %s"
-// 	ErrEncodeView              = "Failed to retrieve users in %s"
-// )
-
-
 
 type UserHandler struct {
 	DB *database.Database
@@ -58,10 +46,6 @@ func (u *UserHandler) HandleGetAllUsers(w http.ResponseWriter, r *http.Request) 
 	api.WriteJSON(w, http.StatusOK, api.Envelop{"users": users})
 }
 
-
-// func (u *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	
-// }
 
 // GET/users/user/{id}
 func (u *UserHandler) HandleGetUserByID(w http.ResponseWriter, r *http.Request) {
@@ -131,13 +115,12 @@ func (u *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 // PUT/users/user/{id}
 func (u *UserHandler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
-	// must support partial updates. if a field is omitted/ not written by client,
-	// database will not be updated
+	// when updating, frontend should send all fields, which will be sent to the database again. 
 	
 	type UpdateUserRequest struct {
-		Username *string `json:"username,omitempty"`
-		Password *string `json:"password,omitempty"`
-		Role *string `json:"role,omitempty"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Role string `json:"role"`
 	}
 	
 	//parse the id
@@ -156,15 +139,18 @@ func (u *UserHandler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	} 
 
-	updateUser:= models.User{}
-	if input.Username != nil {
-		updateUser.Username = *input.Username
+	// validate if relevant fields are filled 
+	if input.Username == "" || input.Password == "" ||input.Role == "" {
+		api.ErrorJSON(w, errors.New("username, password and role are required fields"), http.StatusBadRequest)
+		return
 	}
-	if input.Password != nil {
-		updateUser.Password = *input.Password
-	}
-	if input.Role != nil {
-		updateUser.Role = *input.Role
+
+	
+
+	updateUser:= models.User{
+		Username: input.Username,
+		Password: input.Password,
+		Role: input.Role,
 	}
 
 	user, err := userService.UpdateUser(u.DB, id_int, updateUser)
@@ -179,7 +165,6 @@ func (u *UserHandler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	api.WriteJSON(w, http.StatusOK, api.Envelop{"user": user})
-	
 
 }
 

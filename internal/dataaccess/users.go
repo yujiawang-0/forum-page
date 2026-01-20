@@ -14,13 +14,7 @@ import (
 // returns go structs
 // references: https://github.com/arturfil/yt-go-coffee-api-v2/blob/main/services/coffee.go
 
-// type User struct {
-// 	ID   		int    			`json:"user_id"`
-// 	Username 	string 		`json:"username"`
-// 	Password 	string		`json:"-"` // not sent to the client
-// 	Role 		string		`json:"role"`
-// 	DateCreated time.Time	`json:"date_created"`
-// }
+// CRUD for users
 
 const dbTimeout = time.Second * 3
 
@@ -29,7 +23,7 @@ func GetAllUsers(db *database.Database) ([]*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `SELECT user_id, username, role, date_created FROM users`
+	query := `SELECT user_id, username, role, date_created, is_active FROM users`
 	rows, err := db.Conn.Query(ctx, query)
 
 	if err != nil {
@@ -45,6 +39,7 @@ func GetAllUsers(db *database.Database) ([]*models.User, error) {
 			&user.Username,
 			&user.Role,
 			&user.DateCreated,
+			&user.IsActive,
 		)
 
 		if err != nil {
@@ -62,7 +57,7 @@ func GetUserByID(db *database.Database, id int) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `SELECT user_id, username, role, date_created FROM users WHERE user_id = $1`
+	query := `SELECT user_id, username, role, date_created, is_active FROM users WHERE user_id = $1`
 	row := db.Conn.QueryRow(ctx, query, id)
 
 	var user models.User
@@ -72,6 +67,7 @@ func GetUserByID(db *database.Database, id int) (*models.User, error) {
 		&user.Username,
 		&user.Role,
 		&user.DateCreated,
+		&user.IsActive,
 	)
 
 	if err != nil {
@@ -87,7 +83,7 @@ func CreateUser(db *database.Database, user models.User) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 	query := `INSERT INTO users (username, password)
-	VALUES ($1, $2) returning user_id, username, role, date_created`
+	VALUES ($1, $2) returning user_id, username, role, date_created, is_active`
 
 	var returnedUser models.User
 
@@ -102,6 +98,7 @@ func CreateUser(db *database.Database, user models.User) (*models.User, error) {
 		&returnedUser.Username,
 		&returnedUser.Role,	
 		&returnedUser.DateCreated,
+		&returnedUser.IsActive,
 	)
 	if err != nil {
 		return nil, UniqueUsernameViolation(err)
@@ -122,7 +119,7 @@ func UpdateUser(db *database.Database, id int, body models.User) (*models.User, 
             password = COALESCE($2, password),
             role = COALESCE($3, role)
         WHERE user_id = $4
-        returning user_id, username, role, date_created
+        returning user_id, username, role, date_created, is_active
 		`
 	var returnedUser models.User
 
@@ -139,6 +136,7 @@ func UpdateUser(db *database.Database, id int, body models.User) (*models.User, 
 		&returnedUser.Username,
 		&returnedUser.Role,
 		&returnedUser.DateCreated,
+		&returnedUser.IsActive,
 	)
 	if err != nil {
 		return nil, UniqueUsernameViolation(err)
@@ -148,11 +146,14 @@ func UpdateUser(db *database.Database, id int, body models.User) (*models.User, 
 
 }
 
+// TODO: Edit DeleteUser such that it only makes the is_active flag FALSE. users should not be able to be deleted by the client, only from the DMS
 func DeleteUser(db *database.Database, id int) (error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `DELETE FROM users WHERE user_id = $1`
+	query := `UPDATE users
+		SET is_active = FALSE
+		WHERE user_id = $1`
 	_, err := db.Conn.Exec(ctx, query, id)
 	if err != nil {
 		return err

@@ -7,10 +7,10 @@ import (
 // models: structs shared across layers
 
 type Comment struct {
-	CommentID 	int 		`json:"commentid"`
-	PostID   	int    		`json:"userid"`
-	CreatorID 	int 		`json:"creatorid"`
-	TopicID 	int			`json:"topicid"`
+	CommentID 	int 		`json:"comment_id"`
+	PostID   	int    		`json:"user_id"`
+	CreatorID 	int 		`json:"creator_id"`
+	TopicID 	int			`json:"topic_id"`
 	ReplyCommentID int		`json:"reply_comment_id"`
 	Content 	string		`json:"content"`
 	DateCreated time.Time	`json:"date_created"`
