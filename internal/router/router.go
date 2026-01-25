@@ -20,6 +20,7 @@ func Setup(db *database.Database) chi.Router {
 }
 
 func setUpUserRoutes(r chi.Router, db *database.Database) {
+	r.Route("/auth", routes.AuthRoutes(db))
 	r.Route("/users", routes.UserRoutes(db))
 	r.Route("/topics", routes.TopicRoutes(db))
 	r.Route("/posts", routes.MainPostRoutes(db))

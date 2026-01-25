@@ -77,6 +77,56 @@ func GetUserByID(db *database.Database, id int) (*models.User, error) {
 	return &user, nil
 }
 
+func GetUserByUsername(db *database.Database, username string) (*models.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `SELECT user_id, username, role, date_created, is_active FROM users WHERE username = $1`
+	row := db.Conn.QueryRow(ctx, query, username)
+
+	var user models.User
+	
+	err := row.Scan(
+		&user.ID,
+		&user.Username,
+		&user.Role,
+		&user.DateCreated,
+		&user.IsActive,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func GetUserByUsernameForAuth(db *database.Database, username string) (*models.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `SELECT user_id, username, password, role, date_created, is_active FROM users WHERE username = $1`
+	row := db.Conn.QueryRow(ctx, query, username)
+
+	var user models.User
+	
+	err := row.Scan(
+		&user.ID,
+		&user.Username,
+		&user.Password,
+		&user.Role,
+		&user.DateCreated,
+		&user.IsActive,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+
 // Writing
 
 func CreateUser(db *database.Database, user models.User) (*models.User, error) {

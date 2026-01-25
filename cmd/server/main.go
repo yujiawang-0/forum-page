@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	//"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,7 +19,7 @@ func main() {
 		log.Fatalf("Unable to get DB: %v", err)
 	}
 
-	defer db.Conn.Close(context.Background()) // postpone this until main() function is over
+	defer db.Conn.Close() // postpone this until main() function is over
 
 	// create the tables in the database
 	err = database.CreateUserTables(db)
@@ -40,7 +40,7 @@ func main() {
 	}
 
 	r := router.Setup(db)
-	fmt.Print("Listening on port 8000 at http://localhost:8000!")
+	fmt.Println("Listening on port 8000 at http://localhost:8000!")
 
 	log.Fatalln(http.ListenAndServe(":8000", r))
 }

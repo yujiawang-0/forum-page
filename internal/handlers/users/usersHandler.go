@@ -5,11 +5,13 @@ import (
 	//"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
 	"github.com/yujiawang-0/forum-page/internal/api"
 	"github.com/yujiawang-0/forum-page/internal/dataaccess"
+	"github.com/yujiawang-0/forum-page/internal/handlers/auth"
 	"github.com/yujiawang-0/forum-page/internal/models"
 
 	//"github.com/yujiawang-0/forum-page/internal/dataaccess"
@@ -68,10 +70,30 @@ func (u *UserHandler) HandleGetUserByID(w http.ResponseWriter, r *http.Request) 
 
 }
 
+// GET/users/user/{username}
+func (u *UserHandler) HandleGetUserByUsername(w http.ResponseWriter, r *http.Request) {
+	//parse the id
+	username := chi.URLParam(r, "username")
+	usernameEdit := strings.TrimSpace(username)
+	
+	if username == "" {
+		api.ErrorJSON(w, errors.New("username is required"), http.StatusBadRequest)
+		return
+	}
+
+	user, err := userService.GetUserByUsername(u.DB,usernameEdit)
+	if err != nil {
+		api.MessageLogs.ErrorLog.Println(err)
+		api.ErrorJSON(w, err, http.StatusNotFound)
+		return
+	}
+
+	api.WriteJSON(w, http.StatusOK, api.Envelop{"user": user})
+
+}
+
 // POST/users/user
 func (u *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
-	//TODO: cannot create user if username is already in database
-	
 	// creating a new user will always default them to the "user" role. 
 	// updating to "admin" role requires the use of UpdateUser
 	
@@ -93,9 +115,15 @@ func (u *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	hashedPassword, err := auth.HashPassword(input.Password)
+	if err != nil {
+		api.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
 	newUser:= models.User{
 		Username: input.Username,
-		Password: input.Password,
+		Password: hashedPassword,
 	}
 
 	user, err := userService.CreateUser(u.DB, newUser)

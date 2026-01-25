@@ -1,6 +1,7 @@
 package topics
 
 import (
+	//"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,6 +14,7 @@ import (
 
 	topicService "github.com/yujiawang-0/forum-page/internal/dataaccess"
 	"github.com/yujiawang-0/forum-page/internal/database"
+	"github.com/yujiawang-0/forum-page/internal/handlers/auth"
 )
 
 
@@ -63,7 +65,7 @@ func (u *TopicHandler) HandleCreateTopic(w http.ResponseWriter, r *http.Request)
 	
 	type CreateTopicRequest struct {
 		TopicName string `json:"topic_name"`
-		CreatorID int `json:"creator_id"`
+		// CreatorID int `json:"creator_id"`
 	}
 
 	var input CreateTopicRequest
@@ -79,10 +81,16 @@ func (u *TopicHandler) HandleCreateTopic(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	userID, ok := auth.GetUserIDFromContext(r.Context())
+	if !ok {
+		api.ErrorJSON(w, errors.New("unauthenticated"), http.StatusUnauthorized)
+		return
+	}
+
 	newTopic:= models.Topic{
 		TopicName: input.TopicName,
-		AdminID: input.CreatorID,
-		CreatorID: input.CreatorID,
+		AdminID: userID,
+		CreatorID: userID,
 	}
 
 	topic, err := topicService.CreateTopic(u.DB, newTopic)

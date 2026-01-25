@@ -13,6 +13,7 @@ import (
 
 	postService "github.com/yujiawang-0/forum-page/internal/dataaccess"
 	"github.com/yujiawang-0/forum-page/internal/database"
+	"github.com/yujiawang-0/forum-page/internal/handlers/auth"
 )
 // TODO:
 // enforcing that some posts belong to some topics (for every handler)
@@ -84,7 +85,7 @@ func (u *PostHandler) HandleCreatePost(w http.ResponseWriter, r *http.Request) {
 	type CreatePostRequest struct {
 		Title string  `json:"title"`
 		Content string `json:"content"`
-		CreatorID int `json:"creator_id"`
+		// CreatorID int `json:"creator_id"`
 	}
 	
 	topicID, err:= strconv.Atoi(chi.URLParam(r, "topic_id"))
@@ -108,10 +109,16 @@ func (u *PostHandler) HandleCreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID, ok := auth.GetUserIDFromContext(r.Context())
+	if !ok {
+		api.ErrorJSON(w, errors.New("unauthenticated"), http.StatusUnauthorized)
+		return
+	}
+
 	newPost:= models.Post{
 		Title: input.Title,
 		Content: input.Content,
-		CreatorID: input.CreatorID,
+		CreatorID: userID,
 		TopicID: topicID,
 	}
 

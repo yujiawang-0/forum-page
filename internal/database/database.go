@@ -8,14 +8,15 @@ import (
 	"context"
 	// "database/sql"
 	"fmt"
-	"os"
 	"log"
+	"os"
 
-	"github.com/jackc/pgx/v5"
+	//"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
 type Database struct {
-	Conn *pgx.Conn
+	Conn *pgxpool.Pool
 }
 
 
@@ -28,7 +29,7 @@ func GetDB() (*Database, error) {
 	}
 	
 	//connect to database
-	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	conn, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		return nil, err
