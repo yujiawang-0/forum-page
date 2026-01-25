@@ -1,3 +1,20 @@
+# Run the Code:
+```
+go mod tidy
+go run cmd/server/main.go
+```
+- go to the localhost link provided in the terminal
+
+---
+# Use of AI declaration
+AI used: chatgpt
+Links to chats: 
+- https://chatgpt.com/c/695c90f8-b5ec-8324-8508-09de5fc5a04b
+- https://chatgpt.com/c/696f0887-f02c-832d-b926-2459faba6d0f
+- https://chatgpt.com/c/69511c5b-310c-8321-8d5a-8ebea5d01896
+
+
+
 # CVWO Assignment Sample Golang App
 
 This sample Golang app is provided to help you experiment and practice web development fundamentals.
